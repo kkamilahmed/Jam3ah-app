@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "NOOR",
+    "slug": "noor",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#050505"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.jam3ah.noor"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#050505"
+      },
+      "package": "com.jam3ah.noor",
+      "permissions": ["android.permission.VIBRATE"]
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4edea3",
+          "sounds": []
+        }
+      ]
+    ]
+  }
+}
