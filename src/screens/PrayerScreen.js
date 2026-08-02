@@ -8,7 +8,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useMasjids, usePrayerTimes, useWeekJummah } from '../hooks/usePrayerData';
 import { useSettings } from '../hooks/useSettings';
-import { useScheduleNotifications } from '../hooks/useScheduleNotifications';
 import MonthlyScheduleModal from '../components/MonthlyScheduleModal';
 import {
   buildPrayerRows, formatCountdown, formatGregorian, offsetDate, formatTime,
@@ -29,6 +28,7 @@ export default function PrayerScreen() {
     return n.getHours() * 60 + n.getMinutes();
   });
 
+  const { settings } = useSettings();
   const { masjids, loading: masjidsLoading } = useMasjids();
   const { data: prayerRow, loading: timesLoading, error } = usePrayerTimes(
     selectedMasjid?.id, selectedDate
@@ -36,8 +36,13 @@ export default function PrayerScreen() {
   const { data: jummahRow } = useWeekJummah(selectedMasjid?.id);
 
   useEffect(() => {
-    if (!selectedMasjid && masjids.length > 0) setSelectedMasjid(masjids[0]);
-  }, [masjids, selectedMasjid]);
+    if (!selectedMasjid && masjids.length > 0) {
+      const saved = settings.defaultMasjidId
+        ? masjids.find((m) => m.id === settings.defaultMasjidId)
+        : null;
+      setSelectedMasjid(saved ?? masjids[0]);
+    }
+  }, [masjids, selectedMasjid, settings.defaultMasjidId]);
 
   useEffect(() => {
     Animated.loop(
@@ -60,8 +65,6 @@ export default function PrayerScreen() {
   const nextPrayer = nextIndex !== -1 ? rows[nextIndex] : null;
   const isToday = selectedDate.toDateString() === new Date().toDateString();
   const loading = masjidsLoading || timesLoading;
-  const { settings } = useSettings();
-  useScheduleNotifications(prayerRow, settings, isToday);
   const shiftDate = useCallback((d) => setSelectedDate((prev) => offsetDate(prev, d)), []);
 
   const progressPercent = useMemo(() => {
@@ -90,32 +93,42 @@ export default function PrayerScreen() {
         ]}
       >
         {isNext && <View style={styles.leftAccent} />}
+
+        {/* Prayer name + NEXT badge */}
         <View style={styles.prayerRowLeft}>
-          <Text style={[
-            styles.prayerName,
-            isNext && { color: colors.primary },
-            isActive && !isNext && { color: colors.primary },
-          ]}>
-            {prayer.name.toUpperCase()}
-          </Text>
-          <Text style={styles.prayerIqama}>
-            Iqama {prayer.iqama}
-            {extraIqamas.length > 0 ? ` · ${extraIqamas.join(' · ')}` : ''}
-          </Text>
+          <View style={styles.prayerNameRow}>
+            <Text style={[
+              styles.prayerName,
+              (isNext || isActive) && { color: colors.primary },
+            ]}>
+              {prayer.name.toUpperCase()}
+            </Text>
+            {isNext && (
+              <View style={styles.nextBadge}>
+                <Text style={styles.nextBadgeText}>NEXT</Text>
+              </View>
+            )}
+          </View>
         </View>
-        <View style={styles.prayerRowRight}>
-          {isNext && (
-            <View style={styles.nextBadge}>
-              <Text style={styles.nextBadgeText}>NEXT</Text>
-            </View>
-          )}
-          <Text style={[
-            styles.prayerTime,
-            isNext && { color: colors.primary },
-          ]}>
-            {prayer.adhan}
-          </Text>
+
+        {/* Adhan + Iqama columns */}
+        <View style={styles.timesRow}>
+          <View style={styles.timeCol}>
+            <Text style={styles.timeLabel}>ADHAN</Text>
+            <Text style={[styles.prayerTime, (isNext || isActive) && { color: colors.primary }]}>
+              {prayer.adhan}
+            </Text>
+          </View>
+          <View style={styles.timeDivider} />
+          <View style={styles.timeCol}>
+            <Text style={styles.timeLabel}>IQAMA</Text>
+            <Text style={styles.prayerTime}>
+              {prayer.iqama}
+              {extraIqamas.length > 0 ? `  · ${extraIqamas.join(' · ')}` : ''}
+            </Text>
+          </View>
         </View>
+
         {isActive && isToday && (
           <Animated.View style={[styles.pulseDot, { opacity: pulseAnim }]} />
         )}
@@ -500,7 +513,12 @@ function createStyles(c) {
       borderBottomLeftRadius: 16,
     },
     prayerRowLeft: {
-      gap: 3,
+      flex: 1,
+    },
+    prayerNameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     prayerName: {
       fontFamily: 'Sora_700Bold',
@@ -508,20 +526,30 @@ function createStyles(c) {
       letterSpacing: 1.4,
       color: c.muted,
     },
-    prayerIqama: {
-      fontFamily: 'Inter_400Regular',
-      fontSize: 11,
+    timesRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    timeCol: {
+      alignItems: 'flex-end',
+      gap: 2,
+    },
+    timeLabel: {
+      fontFamily: 'Inter_500Medium',
+      fontSize: 8,
+      letterSpacing: 1.2,
       color: c.muted,
       textTransform: 'uppercase',
-      letterSpacing: 0.3,
     },
-    prayerRowRight: {
-      alignItems: 'flex-end',
-      gap: 4,
+    timeDivider: {
+      width: 1,
+      height: 32,
+      backgroundColor: c.border,
     },
     prayerTime: {
       fontFamily: 'Sora_700Bold',
-      fontSize: 24,
+      fontSize: 18,
       color: c.onSurface,
       letterSpacing: -0.5,
     },

@@ -5,7 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#050505"
     },
@@ -14,25 +16,46 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.jam3ah.noor"
+      "bundleIdentifier": "com.jam3ah.noor",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#050505"
       },
       "package": "com.jam3ah.noor",
-      "permissions": ["android.permission.VIBRATE"]
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "875b2d93-80d5-4a03-ab6c-ecdc30c5cead"
+      }
     },
     "plugins": [
       "expo-font",
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/notification-icon.png",
           "color": "#4edea3",
           "sounds": []
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "875b2d93-80d5-4a03-ab6c-ecdc30c5cead"
+      }
+    }
   }
 }

@@ -144,6 +144,36 @@ export default function SettingsScreen() {
           })}
         </View>
 
+        {/* ── Test ── */}
+        <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Developer</Text>
+        <View style={styles.group}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={async () => {
+              const granted = await requestPermission();
+              if (!granted) return;
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title: 'Fajr',
+                  body: 'Adhan is now',
+                  sound: 'default',
+                },
+                trigger: { type: 'timeInterval', seconds: 5, repeats: false },
+              });
+            }}
+          >
+            <View style={styles.rowIcon}>
+              <MaterialCommunityIcons name="bell-ring" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.rowBody}>
+              <Text style={styles.rowLabel}>Test notification</Text>
+              <Text style={styles.rowSub}>Fires in 5 seconds</Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={18} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+
         {/* ── About ── */}
         <Text style={[styles.sectionLabel, { marginTop: 28 }]}>About</Text>
         <View style={styles.group}>

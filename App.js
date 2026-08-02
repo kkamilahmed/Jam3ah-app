@@ -1,6 +1,25 @@
 import 'react-native-url-polyfill/auto';
 import * as Notifications from 'expo-notifications';
 import React, { useRef, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, ScrollView } from 'react-native';
+
+class ErrorBoundary extends React.Component {
+  state = { error: null };
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <ScrollView style={{ flex: 1, backgroundColor: '#0D0D0D', padding: 24, paddingTop: 60 }}>
+          <Text style={{ color: '#ff4444', fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>Startup Error</Text>
+          <Text style={{ color: '#ffffff', fontSize: 13 }}>{this.state.error?.toString()}</Text>
+          <Text style={{ color: '#888', fontSize: 11, marginTop: 12 }}>{this.state.error?.stack}</Text>
+        </ScrollView>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -33,6 +52,7 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import PrayerScreen from './src/screens/PrayerScreen';
 import EventsScreen from './src/screens/EventsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import { registerAndSavePushToken } from './src/utils/pushToken';
 
 const Tab = createBottomTabNavigator();
 
@@ -204,6 +224,18 @@ function AppNavigator() {
 }
 
 export default function App() {
+  useEffect(() => {
+    // One-time cleanup: earlier app versions scheduled local notifications
+    // alongside server push notifications, doubling every prayer alert.
+    Notifications.cancelAllScheduledNotificationsAsync();
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.getItem('@noor/settings').then((raw) => {
+      if (raw) registerAndSavePushToken(JSON.parse(raw));
+    });
+  }, []);
+
   const [fontsLoaded] = useFonts({
     Sora_400Regular,
     Sora_600SemiBold,
@@ -222,10 +254,12 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider>
-      <SafeAreaProvider>
-        <AppNavigator />
-      </SafeAreaProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <AppNavigator />
+        </SafeAreaProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

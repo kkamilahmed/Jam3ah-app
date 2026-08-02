@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registerAndSavePushToken } from '../utils/pushToken';
 
 const KEY = '@noor/settings';
 
@@ -33,6 +34,7 @@ export function useSettings() {
   const save = useCallback(async (updated) => {
     setSettings(updated);
     await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+    registerAndSavePushToken(updated);
   }, []);
 
   const setNotif = useCallback(
